@@ -15,8 +15,8 @@ contract PNSRegistry is PNS{
 
     // Permits modifications only by the owner of the specified node.
     modifier authorised(bytes32 node) {
-        address owner = records[node].owner;
-        require(owner == msg.sender || operators[owner][msg.sender]);
+        address _owner = records[node].owner;
+        require(_owner == msg.sender || operators[_owner][msg.sender]);
         _;
     }
 
@@ -30,59 +30,58 @@ contract PNSRegistry is PNS{
     /**
      * @dev Sets the record for a node.
      * @param node The node to update.
-     * @param owner The address of the new owner.
-     * @param resolver The address of the resolver.
+     * @param _owner The address of the new owner.
+     * @param _resolver The address of the resolver.
      */
     function setRecord(
         bytes32 node,
-        address owner,
-        address resolver
+        address _owner,
+        address _resolver
     ) external virtual override {
-        setOwner(node, owner);
-        _setResolver(node, resolver);
+        setOwner(node, _owner);
+        _setResolver(node, _resolver);
     }
 
     /**
      * @dev Sets the record for a subnode.
      * @param node The parent node.
      * @param label The hash of the label specifying the subnode.
-     * @param owner The address of the new owner.
-     * @param resolver The address of the resolver.
+     * @param _owner The address of the new owner.
+     * @param _resolver The address of the resolver.
      */
     function setSubnodeRecord(
         bytes32 node,
         bytes32 label,
-        address owner,
-        address resolver
+        address _owner,
+        address _resolver
     ) external virtual override {
-        bytes32 subnode = setSubnodeOwner(node, label, owner);
-        _setResolver(subnode, resolver);
-    }
+        bytes32 subnode = setSubnodeOwner(node, label, _owner);
+        _setResolver(subnode, _resolver);    }
 
     /**
      * @dev Sets the resolver address for the specified node.
      * @param node The node to update.
-     * @param resolver The address of the resolver.
+     * @param _resolver The address of the resolver.
      */
-    function setResolver(bytes32 node, address resolver) public virtual override authorised(node) {
-        emit NewResolver(node, resolver);
-        records[node].resolver = resolver;
+    function setResolver(bytes32 node, address _resolver) public virtual override authorised(node) {
+        emit NewResolver(node, _resolver);
+        records[node].resolver = _resolver;
     }
 
     /**
      * @dev Transfers ownership of a subnode keccak256(node, label) to a new address. May only be called by the owner of the parent node.
      * @param node The parent node.
      * @param label The hash of the label specifying the subnode.
-     * @param owner The address of the new owner.
+     * @param _owner The address of the new owner.
      */
     function setSubnodeOwner(
         bytes32 node,
         bytes32 label,
-        address owner
+        address _owner
     ) public virtual override authorised(node) returns (bytes32) {
         bytes32 subnode = keccak256(abi.encodePacked(node, label));
-        _setOwner(subnode, owner);
-        emit NewOwner(node, label, owner);
+        _setOwner(subnode, _owner);
+        emit NewOwner(node, label, _owner);
         return subnode;
     }
 
@@ -104,16 +103,16 @@ contract PNSRegistry is PNS{
     /**
      * @dev Transfers ownership of a node to a new address. May only be called by the current owner of the node.
      * @param node The node to transfer ownership of.
-     * @param owner The address of the new owner.
+     * @param _owner The address of the new owner.
      */
-    function setOwner(bytes32 node, address owner)
+    function setOwner(bytes32 node, address _owner)
         public
         virtual
         override
         authorised(node)
     {
-        _setOwner(node, owner);
-        emit Transfer(node, owner);
+        _setOwner(node, _owner);
+        emit Transfer(node, _owner);
     }
 
     /**
@@ -168,31 +167,31 @@ contract PNSRegistry is PNS{
 
     /**
      * @dev Query if an address is an authorized operator for another address.
-     * @param owner The address that owns the records.
+     * @param _owner The address that owns the records.
      * @param operator The address that acts on behalf of the owner.
      * @return True if `operator` is an approved operator for `owner`, false otherwise.
      */
-    function isApprovedForAll(address owner, address operator)
+    function isApprovedForAll(address _owner, address operator)
         external
         view
         virtual
         override
         returns (bool)
     {
-        return operators[owner][operator];
+        return operators[_owner][operator];
     }
 
-    function _setOwner(bytes32 node, address owner) internal virtual {
-        records[node].owner = owner;
+    function _setOwner(bytes32 node, address _owner) internal virtual {
+        records[node].owner = _owner;
     }
 
     function _setResolver(
         bytes32 node,
-        address resolver
+        address _resolver
     ) internal {
-        if (resolver != records[node].resolver) {
-            records[node].resolver = resolver;
-            emit NewResolver(node, resolver);
+        if (_resolver != records[node].resolver) {
+            records[node].resolver = _resolver;
+            emit NewResolver(node, _resolver);
         }
 
     }
