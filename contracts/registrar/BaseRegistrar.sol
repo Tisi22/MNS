@@ -12,9 +12,9 @@ contract BaseRegistrar is ERC721, ERC721URIStorage, IBaseRegistrar, Ownable {
     //mapping(uint256 => uint256) domains;
     // A "mapping" data type to store their names
     mapping(uint256 => address) public domains;
-    // The ENS registry
+    // The PNS registry
     PNS public pns;
-    // The namehash of the TLD this registrar owns (eg, .eth)
+    // The namehash of the TLD this registrar owns (eg, matic)
     bytes32 public baseNode;
     // A map of addresses that are authorised to register and renew names.
     mapping(address => bool) public controllers;
@@ -51,38 +51,48 @@ contract BaseRegistrar is ERC721, ERC721URIStorage, IBaseRegistrar, Ownable {
         _;
     }
 
-    // Authorises a controller, who can register domains.
+    /**
+    * @dev Authorises a controller, who can register domains.
+    */
     function addController(address controller) external override onlyOwner {
         controllers[controller] = true;
         emit ControllerAdded(controller);
     }
 
-    // Revoke controller permission for an address.
+    /**
+    * @dev Revoke controller permission for an address
+    */
     function removeController(address controller) external override onlyOwner {
         controllers[controller] = false;
         emit ControllerRemoved(controller);
     }
 
-    // Set the resolver for the TLD this registrar manages.
+    /**
+    * @dev Set the resolver for the TLD this registrar manages.
+    */
     function setResolver(address resolver) external override onlyOwner {
         pns.setResolver(baseNode, resolver);
     }
 
-    // Returns true iff the specified name is available for registration.
+    /**
+    * @dev Returns true iff the specified name is available for registration.
+    */
     function available(uint256 id) public view returns (bool) {
-        require(domains[id] == address(0), "Domain already exists");
-        return true;
+        if(domains[id] == address(0)){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
-    /*function register(
-        uint256 id,
-        address owner,
-        string memory finalTokenURI
-    ) external {
-         _register(id, owner, finalTokenURI, true);
-    }*/
-
-    function register(uint256 id, address owner, string memory finalTokenURI) external live onlyController{
+   /**
+    * @dev Register a new domain.
+    * @param id Token id uint256(keccak256(bytes(string name))).
+    * @param owner Owner of the doman.
+    * @param finalTokenURI URI of the domain. 
+    */
+    function register(uint256 id, address owner, string memory finalTokenURI) external override live onlyController{
         require(available(id));
 
         domains[id] = owner;
@@ -104,10 +114,11 @@ contract BaseRegistrar is ERC721, ERC721URIStorage, IBaseRegistrar, Ownable {
         pns.setSubnodeOwner(baseNode, bytes32(id), owner);
     }
 
+    //-----OVERRIDE FUNCTIONS-----//
 
     /**
-     * @dev Override function from ERC721
-     */
+     * @dev Override function from ERC721 adding reclaim
+    */
     function safeTransferFrom(
         address from,
         address to,
@@ -145,4 +156,6 @@ contract BaseRegistrar is ERC721, ERC721URIStorage, IBaseRegistrar, Ownable {
     {
         return super.tokenURI(tokenId);
     }
+
+    //-----END-----//
 }

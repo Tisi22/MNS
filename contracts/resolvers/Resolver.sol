@@ -21,11 +21,15 @@ contract Resolver {
     );
 
     PNS immutable pns;
+
     address immutable trustedPolygonRegistrarController;
 
-    constructor(PNS _pns, address _trustedPolygonRegistrarController) {
+    address immutable trustedBaseRegistrar;
+
+    constructor(PNS _pns, address _trustedPolygonRegistrarController, address _trustedBaseRegistrar) {
         pns = _pns;
         trustedPolygonRegistrarController = _trustedPolygonRegistrarController;
+        trustedBaseRegistrar = _trustedBaseRegistrar;
     }
 
     function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
@@ -62,7 +66,8 @@ contract Resolver {
 
     function isAuthorised(bytes32 node) public view returns (bool) {
         if (
-            msg.sender == trustedPolygonRegistrarController
+            msg.sender == trustedPolygonRegistrarController ||
+            msg.sender == trustedBaseRegistrar
         ) {
             return true;
         }
@@ -70,4 +75,3 @@ contract Resolver {
         return owner == msg.sender || isApprovedForAll(owner, msg.sender);
     }
 }
-

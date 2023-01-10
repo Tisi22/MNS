@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract NoteFromMom is ERC721, Ownable {
+contract PNServiceNFT is ERC721, Ownable {
 
     //Public mint state
     bool public mintActive = false;
@@ -24,18 +24,21 @@ contract NoteFromMom is ERC721, Ownable {
     }
 
     
-
     constructor() ERC721("Polygon name Service", "PNS") {}
 
     //-----CONTROLLERS-----//
 
-    // Authorises a controller, who can register domains.
+    /**
+    * @dev Authorises a controller, who can mint the NFT.
+    */
     function addController(address controller) external onlyOwner {
         controllers[controller] = true;
         emit ControllerAdded(controller);
     }
 
-    // Revoke controller permission for an address.
+    /**
+    * @dev Revoke controller permission for an address.
+    */
     function removeController(address controller) external onlyOwner {
         controllers[controller] = false;
         emit ControllerRemoved(controller);
@@ -45,11 +48,16 @@ contract NoteFromMom is ERC721, Ownable {
 
     //----SET VARIABLES----//
 
-    //Sets public mint state
+    /**
+    * @dev Sets public mint state.
+    */
     function setMintState(bool val) external onlyOwner {
         mintActive = val;
     }
 
+    /**
+    * @dev Sets URI.
+    */
     function setUri(string memory _uri) external onlyOwner {
         uri = _uri;
     }
@@ -58,7 +66,10 @@ contract NoteFromMom is ERC721, Ownable {
 
     //-----MINT-----//
 
-    function mintNFT() public onlyController{
+    /**
+    * @dev Mints the NFT.
+    */
+    function mintNFT(address to) public onlyController{
  
         require(
             mintActive,
@@ -69,7 +80,7 @@ contract NoteFromMom is ERC721, Ownable {
         tokenID++;
 
         //Mint the NFT and send to the sender
-        _safeMint(msg.sender, (tokenID-1));
+        _safeMint(to, (tokenID-1));
 
     }
 
@@ -77,9 +88,18 @@ contract NoteFromMom is ERC721, Ownable {
 
     //-----OVERRIDE FUNCTIONS-----//
 
-
     function _baseURI() internal view virtual override returns (string memory) {
         return uri;
+    }
+
+    /**
+     * @dev See {IERC721Metadata-tokenURI}.
+     */
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        _requireMinted(tokenId);
+
+        string memory baseURI = _baseURI();
+        return bytes(baseURI).length > 0 ? baseURI : "";
     }
 
     // Block token transfers

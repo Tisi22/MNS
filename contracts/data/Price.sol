@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ~0.8.17;
 
-import { StringUtils } from "./StringUtils.sol";
+import { StringUtils } from "../libraries/StringUtils.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 
@@ -17,20 +17,28 @@ contract Price is Ownable{
         len3Price = _len3Price;
         len4Price = _len4Price;
         len5Price = _len5Price;
-        decimals = 18;
+        decimals = 15;
     }
 
+    /**
+    * @dev New price for registring a domain
+    */
     function setUpNewPrice(uint256 _len3Price, uint256 _len4Price, uint256 _len5Price) public onlyOwner{
         len3Price = _len3Price;
         len4Price = _len4Price;
         len5Price = _len5Price;
     }
 
+    /**
+    * @dev Decimals of the price
+    */
     function setUpDecimals(uint8 _decimals) public onlyOwner {
         decimals = _decimals;
     }
 
-  
+    /**
+    * @dev Calculates the price according the length
+    */
     function price(string calldata name) public view returns(uint) {
         uint len = StringUtils.strlen(name);
         require(len >= 3, "The length cannot be 0");
