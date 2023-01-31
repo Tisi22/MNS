@@ -65,9 +65,9 @@ contract PolygonRegistrarController is Ownable {
   /**
   * @dev Makes a new commitment
   */
-  function makeCommitmentWithConfig(string memory name, bytes32 secret, address resolver) public view returns(bytes32) {
+  function makeCommitmentWithConfig(string memory name, bytes32 secret, address adr, address resolver) public pure returns(bytes32) {
     bytes32 label = keccak256(bytes(name));
-    return keccak256(abi.encodePacked(label, msg.sender, resolver, secret));
+    return keccak256(abi.encodePacked(label, adr, resolver, secret));
   }
 
   /**
@@ -76,7 +76,7 @@ contract PolygonRegistrarController is Ownable {
   function registerDomain(string memory name, bytes32 secret, address resolver) public payable {
     require(resolver != address(0), "Need a resolver contract");
 
-    bytes32 commitment = makeCommitmentWithConfig(name, secret, resolver);
+    bytes32 commitment = makeCommitmentWithConfig(name, secret, msg.sender, resolver);
     uint256 cost =  _consumeCommitment(name, commitment);
 
     bytes32 label = keccak256(bytes(name));
@@ -147,5 +147,10 @@ contract PolygonRegistrarController is Ownable {
            interfaceID == COMMITMENT_CONTROLLER_ID;
   }
 
+  // Function to receive Matic. msg.data must be empty
+  receive() external payable {}
+
+  // Fallback function is called when msg.data is not empty
+  fallback() external payable {}
 
 }
